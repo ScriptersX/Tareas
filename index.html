@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tareas</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #taskContainer {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        button {
+            cursor: pointer;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            width: 100%;
+        }
+        .add-btn { background-color: blue; }
+        .done { background-color: green; }
+        .not-done { background-color: red; }
+        .delete { background-color: gray; }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            font-size: 16px;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="taskContainer">
+        <h2>Lista de Tareas 📋</h2>
+        <input type="text" id="taskInput" placeholder="Escribe una tarea">
+        <button class="add-btn" onclick="addTask()">Agregar</button>
+        <ul id="taskList"></ul>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", renderTasks);
+
+        function addTask() {
+            let taskText = document.getElementById("taskInput").value;
+            if (taskText.trim() === "") {
+                Swal.fire("⚠️ Escribe una tarea antes de agregarla.");
+                return;
+            }
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks.push({ text: taskText, status: "pending" });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            document.getElementById("taskInput").value = "";
+            renderTasks();
+        }
+
+        function renderTasks() {
+            let taskList = document.getElementById("taskList");
+            taskList.innerHTML = "";
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            tasks.forEach((task, index) => {
+                let li = document.createElement("li");
+                li.innerHTML = `
+                    ${task.text} 
+                    <div class="button-container">
+                        <button class="done" onclick="updateTaskStatus(${index}, 'completed')">✔️ Hecha</button>
+                        <button class="not-done" onclick="updateTaskStatus(${index}, 'failed')">❌ No Hecha</button>
+                        <button class="delete" onclick="deleteTask(${index})">🗑 Eliminar</button>
+                    </div>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        function updateTaskStatus(index, status) {
+            let tasks = JSON.parse(localStorage.getItem("tasks"));
+            tasks[index].status = status;
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            renderTasks();
+
+            if (status === "completed") {
+                Swal.fire({
+                    icon: "success",
+                    title: "¡Tarea Completada!",
+                    text: "🎉 Terminaste: " + tasks[index].text,
+                    confirmButtonText: "¡Genial!"
+                });
+            } else if (status === "failed") {
+                Swal.fire({
+                    icon: "error",
+                    title: "Tarea No Cumplida",
+                    text: "❌ No hiciste: " + tasks[index].text,
+                    confirmButtonText: "Intentaré Mejorar"
+                });
+            }
+        }
+
+        function deleteTask(index) {
+            let tasks = JSON.parse(localStorage.getItem("tasks"));
+            tasks.splice(index, 1);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            renderTasks();
+        }
+    </script>
+
+</body>
+</html>
